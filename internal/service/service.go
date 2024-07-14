@@ -1,25 +1,24 @@
 package service
 
 import (
-	"log"
-	"os"
+	"log/slog"
 
-	"auth-service/genprotos/auth_pb"
+	pb "auth-service/genprotos/auth_pb"
 	"auth-service/internal/storage"
 )
 
 type (
 	AuthServiceSt struct {
-		auth_pb.UnimplementedAuthServiceServer
+		pb.UnimplementedAuthServiceServer
 		service storage.AuthSt
-		logger  *log.Logger
+		logger  *slog.Logger
 	}
 )
 
-func New(service storage.AuthSt) *AuthServiceSt {
+func New(service storage.AuthSt, logger *slog.Logger) *AuthServiceSt {
 	return &AuthServiceSt{
 		service: service,
-		logger:  log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile),
+		logger:  logger,
 	}
 }
 

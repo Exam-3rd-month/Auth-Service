@@ -12,6 +12,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type (
@@ -111,6 +113,7 @@ func (s *AuthSt) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.
 	}
 
 	var response pb.GetProfileResponse
+	var tempAddress, tempPhoneNumber sql.NullString
 
 	row := s.db.QueryRowContext(ctx, query, args...)
 	err = row.Scan(
@@ -119,14 +122,21 @@ func (s *AuthSt) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.
 		&response.Email,
 		&response.FullName,
 		&response.UserType,
-		&response.Address,
-		&response.PhoneNumber,
+		&tempAddress,
+		&tempPhoneNumber,
 		&response.CreatedAt,
 		&response.UpdatedAt,
 	)
 	if err != nil {
 		s.logger.Error(err.Error())
 		return nil, err
+	}
+
+	if tempAddress.Valid {
+		response.Address = tempAddress.String
+	}
+	if tempPhoneNumber.Valid {
+		response.PhoneNumber = tempPhoneNumber.String
 	}
 
 	return &response, nil
@@ -142,13 +152,21 @@ func (s *AuthSt) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 		Set("phone_number", in.PhoneNumber).
 		Set("updated_at", updated_at).
 		Where(sq.Eq{"user_id": in.UserId}).
+		Suffix("RETURNING username, email, user_type").
 		ToSql()
+
 	if err != nil {
 		s.logger.Error(err.Error())
 		return nil, err
 	}
 
-	_, err = s.db.ExecContext(ctx, query, args...)
+	row := s.db.QueryRowContext(ctx, query, args...)
+	var username, email, user_type string
+	err = row.Scan(
+		&username,
+		&email,
+		&user_type,
+	)
 	if err != nil {
 		s.logger.Error(err.Error())
 		return nil, err
@@ -156,7 +174,10 @@ func (s *AuthSt) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 
 	return &pb.UpdateProfileResponse{
 		UserId:      in.UserId,
+		Username:    username,
+		Email:       email,
 		FullName:    in.FullName,
+		UserType:    user_type,
 		Address:     in.Address,
 		PhoneNumber: in.PhoneNumber,
 		UpdatedAt:   updated_at.Format("2006-01-02 15:04:05"),
@@ -165,8 +186,40 @@ func (s *AuthSt) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 
 // 5
 func (s *AuthSt) ResetPassword(ctx context.Context, in *pb.ResetPasswordRequest) (*pb.ResetPasswordResponse, error) {
-	return nil, nil
-}
+	hashedPassword, err := hashPassword(in.Password)
+	if err != nil {
+		s.logger.Error("Failed to hash password", "error", err)
+		return nil, status.Errorf(codes.Internal, "Internal server error: %v", err)
+	}
+
+	query, args, err := s.queryBuilder.Update("users").
+		Set("password", hashedPassword).
+		Where(sq.Eq{"email": in.Email}).
+		ToSql()
+	if err != nil {
+		s.logger.Error("Failed to build SQL query", "error", err)
+		return nil, status.Errorf(codes.Internal, "Internal server error: %v", err)
+	}
+
+	result, err := s.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		s.logger.Error("Failed to execute SQL query", "error", err)
+		return nil, status.Errorf(codes.Internal, "Internal server error: %v", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		s.logger.Error("Failed to get affected rows", "error", err)
+		return nil, status.Errorf(codes.Internal, "Internal server error: %v", err)
+	}
+
+	if rowsAffected == 0 {
+		s.logger.Warn("No user found with the provided email")
+		return nil, status.Error(codes.NotFound, "User not found")
+	}
+
+	return &pb.ResetPasswordResponse{Message: "Password successfully updated"}, nil
+}	
 
 // 6
 func (s *AuthSt) RefreshToken(ctx context.Context, in *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {

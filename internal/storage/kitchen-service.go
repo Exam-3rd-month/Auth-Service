@@ -70,17 +70,18 @@ func (s *AuthSt) UpdateKitchen(ctx context.Context, in *pb.UpdateKitchenRequest)
 		Set("address", in.Address).
 		Set("phone_number", in.PhoneNumber).
 		Where(sq.Eq{"kitchen_id": in.KitchenId}).
-		Prefix("RETURNING owner_id, cousine_type, rating").
+		Suffix("RETURNING owner_id, cuisine_type, rating").
 		ToSql()
 	if err != nil {
 		s.logger.Error(err.Error())
 		return nil, err
 	}
 
-	row := s.db.QueryRowContext(ctx, query, args...)
 	var owner_id string
 	var cuisine_type string
 	var rating float32
+
+	row := s.db.QueryRowContext(ctx, query, args...)
 
 	err = row.Scan(&owner_id, &cuisine_type, &rating)
 	if err != nil {
@@ -143,6 +144,7 @@ func (s *AuthSt) GetKitchen(ctx context.Context, in *pb.GetKitchenRequest) (*pb.
 		s.logger.Error(err.Error())
 		return nil, err
 	}
+	response.KitchenId = in.KitchenId
 
 	return &response, nil
 }
