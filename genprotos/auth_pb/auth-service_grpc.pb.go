@@ -37,29 +37,29 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
-	// 1
+	// 1 Done
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	// 2
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	// 3
+	// 3 Done
 	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*GetProfileResponse, error)
-	// 4
+	// 4 Done
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*UpdateProfileResponse, error)
-	// 5
+	// 5 Done
 	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*ResetPasswordResponse, error)
 	// 6
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	// 7
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
-	// 8
+	// 8 Done
 	CreateKitchen(ctx context.Context, in *CreateKitchenRequest, opts ...grpc.CallOption) (*CreateKitchenResponse, error)
-	// 9
+	// 9 Done
 	UpdateKitchen(ctx context.Context, in *UpdateKitchenRequest, opts ...grpc.CallOption) (*UpdateKitchenResponse, error)
-	// 10
+	// 10 Done
 	GetKitchen(ctx context.Context, in *GetKitchenRequest, opts ...grpc.CallOption) (*GetKitchenResponse, error)
-	// 11
+	// 11 Done
 	ListKitchens(ctx context.Context, in *ListKitchensRequest, opts ...grpc.CallOption) (*ListKitchensResponse, error)
-	// 12
+	// 12 Done
 	SearchKitchens(ctx context.Context, in *SearchKitchensRequest, opts ...grpc.CallOption) (*SearchKitchensResponse, error)
 }
 
@@ -195,29 +195,29 @@ func (c *authServiceClient) SearchKitchens(ctx context.Context, in *SearchKitche
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
 type AuthServiceServer interface {
-	// 1
+	// 1 Done
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	// 2
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	// 3
+	// 3 Done
 	GetProfile(context.Context, *GetProfileRequest) (*GetProfileResponse, error)
-	// 4
+	// 4 Done
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*UpdateProfileResponse, error)
-	// 5
+	// 5 Done
 	ResetPassword(context.Context, *ResetPasswordRequest) (*ResetPasswordResponse, error)
 	// 6
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	// 7
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
-	// 8
+	// 8 Done
 	CreateKitchen(context.Context, *CreateKitchenRequest) (*CreateKitchenResponse, error)
-	// 9
+	// 9 Done
 	UpdateKitchen(context.Context, *UpdateKitchenRequest) (*UpdateKitchenResponse, error)
-	// 10
+	// 10 Done
 	GetKitchen(context.Context, *GetKitchenRequest) (*GetKitchenResponse, error)
-	// 11
+	// 11 Done
 	ListKitchens(context.Context, *ListKitchensRequest) (*ListKitchensResponse, error)
-	// 12
+	// 12 Done
 	SearchKitchens(context.Context, *SearchKitchensRequest) (*SearchKitchensResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }

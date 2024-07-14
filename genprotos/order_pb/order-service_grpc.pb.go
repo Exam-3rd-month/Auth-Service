@@ -36,7 +36,6 @@ const (
 	OrderService_GetUserActivity_FullMethodName           = "/OrderService/GetUserActivity"
 	OrderService_CreateKitchenWorkingHours_FullMethodName = "/OrderService/CreateKitchenWorkingHours"
 	OrderService_UpdateKitchenWorkingHours_FullMethodName = "/OrderService/UpdateKitchenWorkingHours"
-	OrderService_CreateDishNutritionInfo_FullMethodName   = "/OrderService/CreateDishNutritionInfo"
 	OrderService_UpdateDishNutritionInfo_FullMethodName   = "/OrderService/UpdateDishNutritionInfo"
 )
 
@@ -45,25 +44,26 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrderServiceClient interface {
 	// Dish
-	// 1
+	// 1 Done
 	AddDish(ctx context.Context, in *AddDishRequest, opts ...grpc.CallOption) (*AddDishResponse, error)
-	// 2
+	// 2 Done
 	UpdateDish(ctx context.Context, in *UpdateDishRequest, opts ...grpc.CallOption) (*UpdateDishResponse, error)
-	// 3
+	// 3 Done
 	DeleteDish(ctx context.Context, in *DeleteDishRequest, opts ...grpc.CallOption) (*DeleteDishResponse, error)
-	// 4
+	// 4 Done
 	ListDishes(ctx context.Context, in *ListDishesRequest, opts ...grpc.CallOption) (*ListDishesResponse, error)
 	// Order
+	// 5 Done
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*CreateOrderResponse, error)
-	// 6
+	// 6 Done
 	UpdateOrderStatus(ctx context.Context, in *UpdateOrderStatusRequest, opts ...grpc.CallOption) (*UpdateOrderStatusResponse, error)
-	// 7
+	// 7 Done
 	ListOfOrders(ctx context.Context, in *ListOfOrdersRequest, opts ...grpc.CallOption) (*ListOfOrdersResponse, error)
-	// 8
+	// 8 Done
 	GetOrderByKitchenId(ctx context.Context, in *GetOrderByKitchenIdRequest, opts ...grpc.CallOption) (*GetOrderByKitchenIdResponse, error)
-	// 9
+	// 9 Done
 	AddReview(ctx context.Context, in *AddReviewRequest, opts ...grpc.CallOption) (*AddReviewResponse, error)
-	// 10
+	// 10 Done
 	ListReviews(ctx context.Context, in *ListReviewsRequest, opts ...grpc.CallOption) (*ListReviewsResponse, error)
 	// 11
 	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*CreatePaymentResponse, error)
@@ -81,8 +81,6 @@ type OrderServiceClient interface {
 	// 5
 	UpdateKitchenWorkingHours(ctx context.Context, in *UpdateKitchenWorkingHoursRequest, opts ...grpc.CallOption) (*UpdateKitchenWorkingHoursResponse, error)
 	// 6
-	CreateDishNutritionInfo(ctx context.Context, in *CreateDishNutritionInfoRequest, opts ...grpc.CallOption) (*CreateDishNutritionInfoResponse, error)
-	// 7
 	UpdateDishNutritionInfo(ctx context.Context, in *UpdateDishNutritionInfoRequest, opts ...grpc.CallOption) (*UpdateDishNutritionInfoResponse, error)
 }
 
@@ -264,16 +262,6 @@ func (c *orderServiceClient) UpdateKitchenWorkingHours(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *orderServiceClient) CreateDishNutritionInfo(ctx context.Context, in *CreateDishNutritionInfoRequest, opts ...grpc.CallOption) (*CreateDishNutritionInfoResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateDishNutritionInfoResponse)
-	err := c.cc.Invoke(ctx, OrderService_CreateDishNutritionInfo_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *orderServiceClient) UpdateDishNutritionInfo(ctx context.Context, in *UpdateDishNutritionInfoRequest, opts ...grpc.CallOption) (*UpdateDishNutritionInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateDishNutritionInfoResponse)
@@ -289,25 +277,26 @@ func (c *orderServiceClient) UpdateDishNutritionInfo(ctx context.Context, in *Up
 // for forward compatibility
 type OrderServiceServer interface {
 	// Dish
-	// 1
+	// 1 Done
 	AddDish(context.Context, *AddDishRequest) (*AddDishResponse, error)
-	// 2
+	// 2 Done
 	UpdateDish(context.Context, *UpdateDishRequest) (*UpdateDishResponse, error)
-	// 3
+	// 3 Done
 	DeleteDish(context.Context, *DeleteDishRequest) (*DeleteDishResponse, error)
-	// 4
+	// 4 Done
 	ListDishes(context.Context, *ListDishesRequest) (*ListDishesResponse, error)
 	// Order
+	// 5 Done
 	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderResponse, error)
-	// 6
+	// 6 Done
 	UpdateOrderStatus(context.Context, *UpdateOrderStatusRequest) (*UpdateOrderStatusResponse, error)
-	// 7
+	// 7 Done
 	ListOfOrders(context.Context, *ListOfOrdersRequest) (*ListOfOrdersResponse, error)
-	// 8
+	// 8 Done
 	GetOrderByKitchenId(context.Context, *GetOrderByKitchenIdRequest) (*GetOrderByKitchenIdResponse, error)
-	// 9
+	// 9 Done
 	AddReview(context.Context, *AddReviewRequest) (*AddReviewResponse, error)
-	// 10
+	// 10 Done
 	ListReviews(context.Context, *ListReviewsRequest) (*ListReviewsResponse, error)
 	// 11
 	CreatePayment(context.Context, *CreatePaymentRequest) (*CreatePaymentResponse, error)
@@ -325,8 +314,6 @@ type OrderServiceServer interface {
 	// 5
 	UpdateKitchenWorkingHours(context.Context, *UpdateKitchenWorkingHoursRequest) (*UpdateKitchenWorkingHoursResponse, error)
 	// 6
-	CreateDishNutritionInfo(context.Context, *CreateDishNutritionInfoRequest) (*CreateDishNutritionInfoResponse, error)
-	// 7
 	UpdateDishNutritionInfo(context.Context, *UpdateDishNutritionInfoRequest) (*UpdateDishNutritionInfoResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
@@ -385,9 +372,6 @@ func (UnimplementedOrderServiceServer) CreateKitchenWorkingHours(context.Context
 }
 func (UnimplementedOrderServiceServer) UpdateKitchenWorkingHours(context.Context, *UpdateKitchenWorkingHoursRequest) (*UpdateKitchenWorkingHoursResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateKitchenWorkingHours not implemented")
-}
-func (UnimplementedOrderServiceServer) CreateDishNutritionInfo(context.Context, *CreateDishNutritionInfoRequest) (*CreateDishNutritionInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateDishNutritionInfo not implemented")
 }
 func (UnimplementedOrderServiceServer) UpdateDishNutritionInfo(context.Context, *UpdateDishNutritionInfoRequest) (*UpdateDishNutritionInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDishNutritionInfo not implemented")
@@ -711,24 +695,6 @@ func _OrderService_UpdateKitchenWorkingHours_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OrderService_CreateDishNutritionInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateDishNutritionInfoRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrderServiceServer).CreateDishNutritionInfo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OrderService_CreateDishNutritionInfo_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServiceServer).CreateDishNutritionInfo(ctx, req.(*CreateDishNutritionInfoRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _OrderService_UpdateDishNutritionInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateDishNutritionInfoRequest)
 	if err := dec(in); err != nil {
@@ -821,10 +787,6 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateKitchenWorkingHours",
 			Handler:    _OrderService_UpdateKitchenWorkingHours_Handler,
-		},
-		{
-			MethodName: "CreateDishNutritionInfo",
-			Handler:    _OrderService_CreateDishNutritionInfo_Handler,
 		},
 		{
 			MethodName: "UpdateDishNutritionInfo",

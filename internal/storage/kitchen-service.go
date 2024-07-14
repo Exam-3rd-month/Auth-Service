@@ -151,10 +151,183 @@ func (s *AuthSt) GetKitchen(ctx context.Context, in *pb.GetKitchenRequest) (*pb.
 
 // 11
 func (s *AuthSt) ListKitchens(ctx context.Context, in *pb.ListKitchensRequest) (*pb.ListKitchensResponse, error) {
-	return nil, nil
+	// Calculate total kitchens
+	var total int32
+	countQuery, countArgs, err := s.queryBuilder.Select("COUNT(*)").
+		From("kitchens").
+		ToSql()
+	if err != nil {
+		s.logger.Error("Failed to build count query", "error", err)
+		return nil, err
+	}
+
+	err = s.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total)
+	if err != nil {
+		s.logger.Error("Failed to execute count query", "error", err)
+		return nil, err
+	}
+
+	// Set default values for limit and page
+	limit := in.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+
+	totalPages := (total + limit - 1) / limit
+	page := in.Page
+	if page <= 0 {
+		page = 1
+	}
+	if page > totalPages {
+		page = totalPages
+	}
+
+	offset := (page - 1) * limit
+
+	// Main query to fetch kitchens
+	query, args, err := s.queryBuilder.Select(
+		"kitchen_id",
+		"name",
+		"cuisine_type",
+		"rating",
+		"total_orders").
+		From("kitchens").
+		OrderBy("rating DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).
+		ToSql()
+	if err != nil {
+		s.logger.Error("Failed to build query", "error", err)
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		s.logger.Error("Failed to execute query", "error", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var kitchens []*pb.KitchenListItem
+
+	for rows.Next() {
+		kitchen := &pb.KitchenListItem{}
+		err = rows.Scan(
+			&kitchen.Id,
+			&kitchen.Name,
+			&kitchen.CuisineType,
+			&kitchen.Rating,
+			&kitchen.TotalOrders,
+		)
+		if err != nil {
+			s.logger.Error("Failed to scan row", "error", err)
+			return nil, err
+		}
+		kitchens = append(kitchens, kitchen)
+	}
+
+	if err = rows.Err(); err != nil {
+		s.logger.Error("Error after scanning rows", "error", err)
+		return nil, err
+	}
+
+	return &pb.ListKitchensResponse{
+		Kitchens: kitchens,
+		Total:    total,
+		Page:     page,
+		Limit:    limit,
+	}, nil
 }
 
 // 12
 func (s *AuthSt) SearchKitchens(ctx context.Context, in *pb.SearchKitchensRequest) (*pb.SearchKitchensResponse, error) {
-	return nil, nil
+    // Calculate total matching kitchens
+    var total int32
+    countQuery, countArgs, err := s.queryBuilder.Select("COUNT(*)").
+        From("kitchens").
+        Where(sq.Like{"name": "%" + in.Name + "%"}).
+        ToSql()
+    if err != nil {
+        s.logger.Error("Failed to build count query", "error", err)
+        return nil, err
+    }
+
+    err = s.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total)
+    if err != nil {
+        s.logger.Error("Failed to execute count query", "error", err)
+        return nil, err
+    }
+
+    // Set default values for limit and page
+    limit := in.Limit
+    if limit <= 0 {
+        limit = 10
+    }
+
+    totalPages := (total + limit - 1) / limit
+    page := in.Page
+    if page <= 0 {
+        page = 1
+    }
+    if page > totalPages {
+        page = totalPages
+    }
+
+    offset := (page - 1) * limit
+
+    // Main query to fetch matching kitchens
+    query, args, err := s.queryBuilder.Select(
+        "kitchen_id",
+        "name",
+        "cuisine_type",
+        "rating",
+        "total_orders").
+        From("kitchens").
+        Where(sq.Like{"name": "%" + in.Name + "%"}).
+        OrderBy("rating DESC").
+        Limit(uint64(limit)).
+        Offset(uint64(offset)).
+        ToSql()
+    if err != nil {
+        s.logger.Error("Failed to build query", "error", err)
+        return nil, err
+    }
+
+    rows, err := s.db.QueryContext(ctx, query, args...)
+    if err != nil {
+        s.logger.Error("Failed to execute query", "error", err)
+        return nil, err
+    }
+    defer rows.Close()
+
+    var kitchens []*pb.KitchenListItem
+
+    for rows.Next() {
+        kitchen := &pb.KitchenListItem{}
+        err = rows.Scan(
+            &kitchen.Id,
+            &kitchen.Name,
+            &kitchen.CuisineType,
+            &kitchen.Rating,
+            &kitchen.TotalOrders,
+        )
+        if err != nil {
+            s.logger.Error("Failed to scan row", "error", err)
+            return nil, err
+        }
+        kitchens = append(kitchens, kitchen)
+    }
+
+    if err = rows.Err(); err != nil {
+        s.logger.Error("Error after scanning rows", "error", err)
+        return nil, err
+    }
+
+    return &pb.SearchKitchensResponse{
+        Kitchens: kitchens,
+        Total:    total,
+        Page:     page,
+        Limit:    limit,
+    }, nil
 }
+
