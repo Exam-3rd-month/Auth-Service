@@ -65,7 +65,7 @@ type OrderServiceClient interface {
 	AddReview(ctx context.Context, in *AddReviewRequest, opts ...grpc.CallOption) (*AddReviewResponse, error)
 	// 10 Done
 	ListReviews(ctx context.Context, in *ListReviewsRequest, opts ...grpc.CallOption) (*ListReviewsResponse, error)
-	// 11
+	// 11 Done
 	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*CreatePaymentResponse, error)
 	// 12
 	GetFullInfoAboutOrder(ctx context.Context, in *GetFullInfoAboutOrderRequest, opts ...grpc.CallOption) (*GetFullInfoAboutOrderResponse, error)
@@ -298,7 +298,7 @@ type OrderServiceServer interface {
 	AddReview(context.Context, *AddReviewRequest) (*AddReviewResponse, error)
 	// 10 Done
 	ListReviews(context.Context, *ListReviewsRequest) (*ListReviewsResponse, error)
-	// 11
+	// 11 Done
 	CreatePayment(context.Context, *CreatePaymentRequest) (*CreatePaymentResponse, error)
 	// 12
 	GetFullInfoAboutOrder(context.Context, *GetFullInfoAboutOrderRequest) (*GetFullInfoAboutOrderResponse, error)

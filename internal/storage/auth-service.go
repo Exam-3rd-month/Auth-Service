@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"auth-service/internal/config"
+	jwttokens "auth-service/internal/jwt"
 
 	pb "auth-service/genprotos/auth_pb"
 
@@ -89,8 +90,37 @@ func (s *AuthSt) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 
 // 2
 func (s *AuthSt) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginResponse, error) {
-	// query, args, err := s.queryBuilder.Select("username", "email", "user_type").
-	return nil, nil
+	query, args, err := s.queryBuilder.Select("password", "user_id").
+		From("users").
+		Where(sq.Eq{"email": in.Email}).
+		ToSql()
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	var password string
+	var user_id string
+	row := s.db.QueryRowContext(ctx, query, args...)
+	err = row.Scan(&password, &user_id)
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	if !checkPassword(in.Password, password) {
+		return nil, status.Error(codes.Unauthenticated, "Invalid credentials")
+	}
+
+	token, err := jwttokens.GenerateToken(user_id, in.Email)
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	return &pb.LoginResponse{
+		AccessToken: token,
+	}, nil
 }
 
 // 3
@@ -222,14 +252,35 @@ func (s *AuthSt) ResetPassword(ctx context.Context, in *pb.ResetPasswordRequest)
 	return &pb.ResetPasswordResponse{Message: "Password successfully updated"}, nil
 }
 
-// 6
-func (s *AuthSt) RefreshToken(ctx context.Context, in *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
-	return nil, nil
-}
-
 // 7
 func (s *AuthSt) Logout(ctx context.Context, in *pb.LogoutRequest) (*pb.LogoutResponse, error) {
-	return nil, nil
+	query, args, err := s.queryBuilder.Update("users").
+		Set("is_expired", true).
+		Where(sq.Eq{"user_id": in.UserId}).
+		ToSql()
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	result, err := s.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	if rowsAffected == 0 {
+		s.logger.Warn("No user found with the provided user_id")
+		return nil, status.Error(codes.NotFound, "User not found")
+	}
+
+	return &pb.LogoutResponse{Message: "User successfully logged out"}, nil
 }
 
 // 13
@@ -259,4 +310,33 @@ func (s *AuthSt) DoesUserExist(ctx context.Context, in *pb.DoesUserExistRequest)
 	}
 
 	return &pb.DoesUserExistResponse{Exists: true}, nil
+}
+
+// 15
+func (s *AuthSt) IsValidToken(ctx context.Context, in *pb.IsValidTokenRequest) (*pb.IsValidTokenResponse, error) {
+	query, args, err := s.queryBuilder.Select("is_expired").
+		From("users").
+		Where(sq.Eq{"user_id": in.UserId}).
+		ToSql()
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	var is_expired bool
+
+	row := s.db.QueryRowContext(ctx, query, args...)
+	err = row.Scan(
+		&is_expired,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &pb.IsValidTokenResponse{Valid: false}, nil
+		}
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	return &pb.IsValidTokenResponse{Valid: !is_expired}, nil
 }

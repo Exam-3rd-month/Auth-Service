@@ -29,8 +29,20 @@ func (s *AuthServiceSt) ResetPassword(ctx context.Context, req *pb.ResetPassword
 	return s.service.ResetPassword(ctx, req)
 }
 
+// 7
+func (s *AuthServiceSt) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+	s.logger.Info("logout request")
+	return s.service.Logout(ctx, req)
+}
+
 // 13
 func (s *AuthServiceSt) DoesUserExist(ctx context.Context, req *pb.DoesUserExistRequest) (*pb.DoesUserExistResponse, error) {
 	s.logger.Info("does user exist request")
 	return s.service.DoesUserExist(ctx, req)
+}
+
+// 15
+func (s *AuthServiceSt) IsValidToken(ctx context.Context, req *pb.IsValidTokenRequest) (*pb.IsValidTokenResponse, error) {
+	s.logger.Info("is valid token request")
+	return s.service.IsValidToken(ctx, req)
 }
