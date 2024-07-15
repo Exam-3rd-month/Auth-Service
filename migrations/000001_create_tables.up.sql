@@ -11,6 +11,8 @@ CREATE TABLE users (
     specialties TEXT[],
     years_of_experience INTEGER,
     is_verified BOOLEAN DEFAULT false,
+    access_token VARCHAR(255),
+    is_expired BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE

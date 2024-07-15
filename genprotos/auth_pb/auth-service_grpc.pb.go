@@ -19,18 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	AuthService_Register_FullMethodName       = "/AuthService/Register"
-	AuthService_Login_FullMethodName          = "/AuthService/Login"
-	AuthService_GetProfile_FullMethodName     = "/AuthService/GetProfile"
-	AuthService_UpdateProfile_FullMethodName  = "/AuthService/UpdateProfile"
-	AuthService_ResetPassword_FullMethodName  = "/AuthService/ResetPassword"
-	AuthService_RefreshToken_FullMethodName   = "/AuthService/RefreshToken"
-	AuthService_Logout_FullMethodName         = "/AuthService/Logout"
-	AuthService_CreateKitchen_FullMethodName  = "/AuthService/CreateKitchen"
-	AuthService_UpdateKitchen_FullMethodName  = "/AuthService/UpdateKitchen"
-	AuthService_GetKitchen_FullMethodName     = "/AuthService/GetKitchen"
-	AuthService_ListKitchens_FullMethodName   = "/AuthService/ListKitchens"
-	AuthService_SearchKitchens_FullMethodName = "/AuthService/SearchKitchens"
+	AuthService_Register_FullMethodName         = "/AuthService/Register"
+	AuthService_Login_FullMethodName            = "/AuthService/Login"
+	AuthService_GetProfile_FullMethodName       = "/AuthService/GetProfile"
+	AuthService_UpdateProfile_FullMethodName    = "/AuthService/UpdateProfile"
+	AuthService_ResetPassword_FullMethodName    = "/AuthService/ResetPassword"
+	AuthService_RefreshToken_FullMethodName     = "/AuthService/RefreshToken"
+	AuthService_Logout_FullMethodName           = "/AuthService/Logout"
+	AuthService_CreateKitchen_FullMethodName    = "/AuthService/CreateKitchen"
+	AuthService_UpdateKitchen_FullMethodName    = "/AuthService/UpdateKitchen"
+	AuthService_GetKitchen_FullMethodName       = "/AuthService/GetKitchen"
+	AuthService_ListKitchens_FullMethodName     = "/AuthService/ListKitchens"
+	AuthService_SearchKitchens_FullMethodName   = "/AuthService/SearchKitchens"
+	AuthService_DoesUserExist_FullMethodName    = "/AuthService/DoesUserExist"
+	AuthService_DoesKitchenExist_FullMethodName = "/AuthService/DoesKitchenExist"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -61,6 +63,11 @@ type AuthServiceClient interface {
 	ListKitchens(ctx context.Context, in *ListKitchensRequest, opts ...grpc.CallOption) (*ListKitchensResponse, error)
 	// 12 Done
 	SearchKitchens(ctx context.Context, in *SearchKitchensRequest, opts ...grpc.CallOption) (*SearchKitchensResponse, error)
+	// Yordamchi funksiyalar
+	// 13 Done
+	DoesUserExist(ctx context.Context, in *DoesUserExistRequest, opts ...grpc.CallOption) (*DoesUserExistResponse, error)
+	// 14 Done
+	DoesKitchenExist(ctx context.Context, in *DoesKitchenExistRequest, opts ...grpc.CallOption) (*DoesKitchenExistResponse, error)
 }
 
 type authServiceClient struct {
@@ -191,6 +198,26 @@ func (c *authServiceClient) SearchKitchens(ctx context.Context, in *SearchKitche
 	return out, nil
 }
 
+func (c *authServiceClient) DoesUserExist(ctx context.Context, in *DoesUserExistRequest, opts ...grpc.CallOption) (*DoesUserExistResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DoesUserExistResponse)
+	err := c.cc.Invoke(ctx, AuthService_DoesUserExist_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DoesKitchenExist(ctx context.Context, in *DoesKitchenExistRequest, opts ...grpc.CallOption) (*DoesKitchenExistResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DoesKitchenExistResponse)
+	err := c.cc.Invoke(ctx, AuthService_DoesKitchenExist_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -219,6 +246,11 @@ type AuthServiceServer interface {
 	ListKitchens(context.Context, *ListKitchensRequest) (*ListKitchensResponse, error)
 	// 12 Done
 	SearchKitchens(context.Context, *SearchKitchensRequest) (*SearchKitchensResponse, error)
+	// Yordamchi funksiyalar
+	// 13 Done
+	DoesUserExist(context.Context, *DoesUserExistRequest) (*DoesUserExistResponse, error)
+	// 14 Done
+	DoesKitchenExist(context.Context, *DoesKitchenExistRequest) (*DoesKitchenExistResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -261,6 +293,12 @@ func (UnimplementedAuthServiceServer) ListKitchens(context.Context, *ListKitchen
 }
 func (UnimplementedAuthServiceServer) SearchKitchens(context.Context, *SearchKitchensRequest) (*SearchKitchensResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchKitchens not implemented")
+}
+func (UnimplementedAuthServiceServer) DoesUserExist(context.Context, *DoesUserExistRequest) (*DoesUserExistResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DoesUserExist not implemented")
+}
+func (UnimplementedAuthServiceServer) DoesKitchenExist(context.Context, *DoesKitchenExistRequest) (*DoesKitchenExistResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DoesKitchenExist not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -491,6 +529,42 @@ func _AuthService_SearchKitchens_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_DoesUserExist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DoesUserExistRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DoesUserExist(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DoesUserExist_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DoesUserExist(ctx, req.(*DoesUserExistRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DoesKitchenExist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DoesKitchenExistRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DoesKitchenExist(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DoesKitchenExist_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DoesKitchenExist(ctx, req.(*DoesKitchenExistRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -545,6 +619,14 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchKitchens",
 			Handler:    _AuthService_SearchKitchens_Handler,
+		},
+		{
+			MethodName: "DoesUserExist",
+			Handler:    _AuthService_DoesUserExist_Handler,
+		},
+		{
+			MethodName: "DoesKitchenExist",
+			Handler:    _AuthService_DoesKitchenExist_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

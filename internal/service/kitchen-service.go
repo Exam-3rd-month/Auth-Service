@@ -34,3 +34,9 @@ func (s *AuthServiceSt) SearchKitchens(ctx context.Context, in *pb.SearchKitchen
 	s.logger.Info("search kitchens request")
 	return s.service.SearchKitchens(ctx, in)
 }
+
+// 14
+func (s *AuthServiceSt) DoesKitchenExist(ctx context.Context, in *pb.DoesKitchenExistRequest) (*pb.DoesKitchenExistResponse, error) {
+	s.logger.Info("does kitchen exist request")
+	return s.service.DoesKitchenExist(ctx, in)
+}

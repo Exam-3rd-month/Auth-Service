@@ -3,6 +3,7 @@ package storage
 import (
 	pb "auth-service/genprotos/auth_pb"
 	"context"
+	"database/sql"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -241,93 +242,118 @@ func (s *AuthSt) ListKitchens(ctx context.Context, in *pb.ListKitchensRequest) (
 
 // 12
 func (s *AuthSt) SearchKitchens(ctx context.Context, in *pb.SearchKitchensRequest) (*pb.SearchKitchensResponse, error) {
-    // Calculate total matching kitchens
-    var total int32
-    countQuery, countArgs, err := s.queryBuilder.Select("COUNT(*)").
-        From("kitchens").
-        Where(sq.Like{"name": "%" + in.Name + "%"}).
-        ToSql()
-    if err != nil {
-        s.logger.Error("Failed to build count query", "error", err)
-        return nil, err
-    }
+	// Calculate total matching kitchens
+	var total int32
+	countQuery, countArgs, err := s.queryBuilder.Select("COUNT(*)").
+		From("kitchens").
+		Where(sq.Like{"name": "%" + in.Name + "%"}).
+		ToSql()
+	if err != nil {
+		s.logger.Error("Failed to build count query", "error", err)
+		return nil, err
+	}
 
-    err = s.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total)
-    if err != nil {
-        s.logger.Error("Failed to execute count query", "error", err)
-        return nil, err
-    }
+	err = s.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total)
+	if err != nil {
+		s.logger.Error("Failed to execute count query", "error", err)
+		return nil, err
+	}
 
-    // Set default values for limit and page
-    limit := in.Limit
-    if limit <= 0 {
-        limit = 10
-    }
+	// Set default values for limit and page
+	limit := in.Limit
+	if limit <= 0 {
+		limit = 10
+	}
 
-    totalPages := (total + limit - 1) / limit
-    page := in.Page
-    if page <= 0 {
-        page = 1
-    }
-    if page > totalPages {
-        page = totalPages
-    }
+	totalPages := (total + limit - 1) / limit
+	page := in.Page
+	if page <= 0 {
+		page = 1
+	}
+	if page > totalPages {
+		page = totalPages
+	}
 
-    offset := (page - 1) * limit
+	offset := (page - 1) * limit
 
-    // Main query to fetch matching kitchens
-    query, args, err := s.queryBuilder.Select(
-        "kitchen_id",
-        "name",
-        "cuisine_type",
-        "rating",
-        "total_orders").
-        From("kitchens").
-        Where(sq.Like{"name": "%" + in.Name + "%"}).
-        OrderBy("rating DESC").
-        Limit(uint64(limit)).
-        Offset(uint64(offset)).
-        ToSql()
-    if err != nil {
-        s.logger.Error("Failed to build query", "error", err)
-        return nil, err
-    }
+	// Main query to fetch matching kitchens
+	query, args, err := s.queryBuilder.Select(
+		"kitchen_id",
+		"name",
+		"cuisine_type",
+		"rating",
+		"total_orders").
+		From("kitchens").
+		Where(sq.Like{"name": "%" + in.Name + "%"}).
+		OrderBy("rating DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).
+		ToSql()
+	if err != nil {
+		s.logger.Error("Failed to build query", "error", err)
+		return nil, err
+	}
 
-    rows, err := s.db.QueryContext(ctx, query, args...)
-    if err != nil {
-        s.logger.Error("Failed to execute query", "error", err)
-        return nil, err
-    }
-    defer rows.Close()
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		s.logger.Error("Failed to execute query", "error", err)
+		return nil, err
+	}
+	defer rows.Close()
 
-    var kitchens []*pb.KitchenListItem
+	var kitchens []*pb.KitchenListItem
 
-    for rows.Next() {
-        kitchen := &pb.KitchenListItem{}
-        err = rows.Scan(
-            &kitchen.Id,
-            &kitchen.Name,
-            &kitchen.CuisineType,
-            &kitchen.Rating,
-            &kitchen.TotalOrders,
-        )
-        if err != nil {
-            s.logger.Error("Failed to scan row", "error", err)
-            return nil, err
-        }
-        kitchens = append(kitchens, kitchen)
-    }
+	for rows.Next() {
+		kitchen := &pb.KitchenListItem{}
+		err = rows.Scan(
+			&kitchen.Id,
+			&kitchen.Name,
+			&kitchen.CuisineType,
+			&kitchen.Rating,
+			&kitchen.TotalOrders,
+		)
+		if err != nil {
+			s.logger.Error("Failed to scan row", "error", err)
+			return nil, err
+		}
+		kitchens = append(kitchens, kitchen)
+	}
 
-    if err = rows.Err(); err != nil {
-        s.logger.Error("Error after scanning rows", "error", err)
-        return nil, err
-    }
+	if err = rows.Err(); err != nil {
+		s.logger.Error("Error after scanning rows", "error", err)
+		return nil, err
+	}
 
-    return &pb.SearchKitchensResponse{
-        Kitchens: kitchens,
-        Total:    total,
-        Page:     page,
-        Limit:    limit,
-    }, nil
+	return &pb.SearchKitchensResponse{
+		Kitchens: kitchens,
+		Total:    total,
+		Page:     page,
+		Limit:    limit,
+	}, nil
 }
 
+// 14
+func (s *AuthSt) DoesKitchenExist(ctx context.Context, in *pb.DoesKitchenExistRequest) (*pb.DoesKitchenExistResponse, error) {
+	query, args, err := s.queryBuilder.Select("kitchen_id").
+		From("kitchens").
+		Where(sq.Eq{"kitchen_id": in.KitchenId}).
+		ToSql()
+	if err != nil {
+		s.logger.Error("Failed to build query", "error", err)
+		return nil, err
+	}
+
+	var kitchen_id string
+
+	row := s.db.QueryRowContext(ctx, query, args...)
+	err = row.Scan(&kitchen_id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &pb.DoesKitchenExistResponse{Exists: false}, nil
+		}
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	return &pb.DoesKitchenExistResponse{Exists: true}, nil
+}

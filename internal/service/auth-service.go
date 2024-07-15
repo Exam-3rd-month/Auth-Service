@@ -28,3 +28,9 @@ func (s *AuthServiceSt) ResetPassword(ctx context.Context, req *pb.ResetPassword
 	s.logger.Info("reset password request")
 	return s.service.ResetPassword(ctx, req)
 }
+
+// 13
+func (s *AuthServiceSt) DoesUserExist(ctx context.Context, req *pb.DoesUserExistRequest) (*pb.DoesUserExistResponse, error) {
+	s.logger.Info("does user exist request")
+	return s.service.DoesUserExist(ctx, req)
+}

@@ -89,6 +89,7 @@ func (s *AuthSt) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 
 // 2
 func (s *AuthSt) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginResponse, error) {
+	// query, args, err := s.queryBuilder.Select("username", "email", "user_type").
 	return nil, nil
 }
 
@@ -219,7 +220,7 @@ func (s *AuthSt) ResetPassword(ctx context.Context, in *pb.ResetPasswordRequest)
 	}
 
 	return &pb.ResetPasswordResponse{Message: "Password successfully updated"}, nil
-}	
+}
 
 // 6
 func (s *AuthSt) RefreshToken(ctx context.Context, in *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
@@ -229,4 +230,33 @@ func (s *AuthSt) RefreshToken(ctx context.Context, in *pb.RefreshTokenRequest) (
 // 7
 func (s *AuthSt) Logout(ctx context.Context, in *pb.LogoutRequest) (*pb.LogoutResponse, error) {
 	return nil, nil
+}
+
+// 13
+func (s *AuthSt) DoesUserExist(ctx context.Context, in *pb.DoesUserExistRequest) (*pb.DoesUserExistResponse, error) {
+	query, args, err := s.queryBuilder.Select("user_id").
+		From("users").
+		Where(sq.Eq{"user_id": in.UserId}).
+		ToSql()
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	var user_id int
+
+	row := s.db.QueryRowContext(ctx, query, args...)
+	err = row.Scan(
+		&user_id,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &pb.DoesUserExistResponse{Exists: false}, nil
+		}
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	return &pb.DoesUserExistResponse{Exists: true}, nil
 }
