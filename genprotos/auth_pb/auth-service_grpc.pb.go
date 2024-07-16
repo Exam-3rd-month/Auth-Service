@@ -19,20 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	AuthService_Register_FullMethodName         = "/AuthService/Register"
-	AuthService_Login_FullMethodName            = "/AuthService/Login"
-	AuthService_GetProfile_FullMethodName       = "/AuthService/GetProfile"
-	AuthService_UpdateProfile_FullMethodName    = "/AuthService/UpdateProfile"
-	AuthService_ResetPassword_FullMethodName    = "/AuthService/ResetPassword"
-	AuthService_Logout_FullMethodName           = "/AuthService/Logout"
-	AuthService_CreateKitchen_FullMethodName    = "/AuthService/CreateKitchen"
-	AuthService_UpdateKitchen_FullMethodName    = "/AuthService/UpdateKitchen"
-	AuthService_GetKitchen_FullMethodName       = "/AuthService/GetKitchen"
-	AuthService_ListKitchens_FullMethodName     = "/AuthService/ListKitchens"
-	AuthService_SearchKitchens_FullMethodName   = "/AuthService/SearchKitchens"
-	AuthService_DoesUserExist_FullMethodName    = "/AuthService/DoesUserExist"
-	AuthService_DoesKitchenExist_FullMethodName = "/AuthService/DoesKitchenExist"
-	AuthService_IsValidToken_FullMethodName     = "/AuthService/IsValidToken"
+	AuthService_Register_FullMethodName             = "/AuthService/Register"
+	AuthService_Login_FullMethodName                = "/AuthService/Login"
+	AuthService_GetProfile_FullMethodName           = "/AuthService/GetProfile"
+	AuthService_UpdateProfile_FullMethodName        = "/AuthService/UpdateProfile"
+	AuthService_ResetPassword_FullMethodName        = "/AuthService/ResetPassword"
+	AuthService_Logout_FullMethodName               = "/AuthService/Logout"
+	AuthService_CreateKitchen_FullMethodName        = "/AuthService/CreateKitchen"
+	AuthService_UpdateKitchen_FullMethodName        = "/AuthService/UpdateKitchen"
+	AuthService_GetKitchen_FullMethodName           = "/AuthService/GetKitchen"
+	AuthService_ListKitchens_FullMethodName         = "/AuthService/ListKitchens"
+	AuthService_SearchKitchens_FullMethodName       = "/AuthService/SearchKitchens"
+	AuthService_DoesUserExist_FullMethodName        = "/AuthService/DoesUserExist"
+	AuthService_DoesKitchenExist_FullMethodName     = "/AuthService/DoesKitchenExist"
+	AuthService_IsValidToken_FullMethodName         = "/AuthService/IsValidToken"
+	AuthService_IncrementTotalOrders_FullMethodName = "/AuthService/IncrementTotalOrders"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -68,6 +69,8 @@ type AuthServiceClient interface {
 	DoesKitchenExist(ctx context.Context, in *DoesKitchenExistRequest, opts ...grpc.CallOption) (*DoesKitchenExistResponse, error)
 	// 15
 	IsValidToken(ctx context.Context, in *IsValidTokenRequest, opts ...grpc.CallOption) (*IsValidTokenResponse, error)
+	// 16
+	IncrementTotalOrders(ctx context.Context, in *IncrementTotalOrdersRequest, opts ...grpc.CallOption) (*IncrementTotalOrdersResponse, error)
 }
 
 type authServiceClient struct {
@@ -218,6 +221,16 @@ func (c *authServiceClient) IsValidToken(ctx context.Context, in *IsValidTokenRe
 	return out, nil
 }
 
+func (c *authServiceClient) IncrementTotalOrders(ctx context.Context, in *IncrementTotalOrdersRequest, opts ...grpc.CallOption) (*IncrementTotalOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IncrementTotalOrdersResponse)
+	err := c.cc.Invoke(ctx, AuthService_IncrementTotalOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -251,6 +264,8 @@ type AuthServiceServer interface {
 	DoesKitchenExist(context.Context, *DoesKitchenExistRequest) (*DoesKitchenExistResponse, error)
 	// 15
 	IsValidToken(context.Context, *IsValidTokenRequest) (*IsValidTokenResponse, error)
+	// 16
+	IncrementTotalOrders(context.Context, *IncrementTotalOrdersRequest) (*IncrementTotalOrdersResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -299,6 +314,9 @@ func (UnimplementedAuthServiceServer) DoesKitchenExist(context.Context, *DoesKit
 }
 func (UnimplementedAuthServiceServer) IsValidToken(context.Context, *IsValidTokenRequest) (*IsValidTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsValidToken not implemented")
+}
+func (UnimplementedAuthServiceServer) IncrementTotalOrders(context.Context, *IncrementTotalOrdersRequest) (*IncrementTotalOrdersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IncrementTotalOrders not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -565,6 +583,24 @@ func _AuthService_IsValidToken_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_IncrementTotalOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IncrementTotalOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).IncrementTotalOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_IncrementTotalOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).IncrementTotalOrders(ctx, req.(*IncrementTotalOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -627,6 +663,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsValidToken",
 			Handler:    _AuthService_IsValidToken_Handler,
+		},
+		{
+			MethodName: "IncrementTotalOrders",
+			Handler:    _AuthService_IncrementTotalOrders_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

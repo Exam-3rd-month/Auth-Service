@@ -11,6 +11,12 @@ func (s *AuthServiceSt) Register(ctx context.Context, req *pb.RegisterRequest) (
 	return s.service.Register(ctx, req)
 }
 
+// 2
+func (s *AuthServiceSt) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	s.logger.Info("login request")
+	return s.service.Login(ctx, req)
+}
+
 // 3
 func (s *AuthServiceSt) GetProfile(ctx context.Context, req *pb.GetProfileRequest) (*pb.GetProfileResponse, error) {
 	s.logger.Info("get profile request")

@@ -40,3 +40,9 @@ func (s *AuthServiceSt) DoesKitchenExist(ctx context.Context, in *pb.DoesKitchen
 	s.logger.Info("does kitchen exist request")
 	return s.service.DoesKitchenExist(ctx, in)
 }
+
+// 16
+func (s *AuthServiceSt) IncrementTotalOrders(ctx context.Context, in *pb.IncrementTotalOrdersRequest) (*pb.IncrementTotalOrdersResponse, error) {
+	s.logger.Info("increment total orders request")
+	return s.service.IncrementTotalOrders(ctx, in)
+}

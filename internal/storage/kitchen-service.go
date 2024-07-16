@@ -357,3 +357,26 @@ func (s *AuthSt) DoesKitchenExist(ctx context.Context, in *pb.DoesKitchenExistRe
 
 	return &pb.DoesKitchenExistResponse{Exists: true}, nil
 }
+
+// 16
+func (s *AuthSt) IncrementTotalOrders(ctx context.Context, in *pb.IncrementTotalOrdersRequest) (*pb.IncrementTotalOrdersResponse, error) {
+	query, args, err := s.queryBuilder.Update("kitchens").
+		Set("total_orders", sq.Expr("total_orders +?", 1)).
+		Where(sq.Eq{"kitchen_id": in.KitchenId}).
+		Where("deleted_at IS NULL").
+		ToSql()
+	if err != nil {
+		s.logger.Error("Failed to build query", "error", err)
+		return nil, err
+	}
+
+	_, err = s.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		s.logger.Error("Failed to execute query", "error", err)
+		return nil, err
+	}
+
+	return &pb.IncrementTotalOrdersResponse{
+		Ok: "Total orders incremented successfully",
+	}, nil
+}

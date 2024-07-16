@@ -90,6 +90,12 @@ func (s *AuthSt) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 
 // 2
 func (s *AuthSt) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginResponse, error) {
+	hashedPassword, err := hashPassword(in.Password)
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
 	query, args, err := s.queryBuilder.Select("password", "user_id").
 		From("users").
 		Where(sq.Eq{"email": in.Email}).
@@ -108,7 +114,7 @@ func (s *AuthSt) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginRespo
 		return nil, err
 	}
 
-	if !checkPassword(in.Password, password) {
+	if checkPassword(hashedPassword, password) {
 		return nil, status.Error(codes.Unauthenticated, "Invalid credentials")
 	}
 
