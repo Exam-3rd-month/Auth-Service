@@ -46,3 +46,14 @@ func (s *AuthServiceSt) IncrementTotalOrders(ctx context.Context, in *pb.Increme
 	s.logger.Info("increment total orders request")
 	return s.service.IncrementTotalOrders(ctx, in)
 }
+
+// 17
+func (s *AuthServiceSt) IncrementOrderRating(ctx context.Context, in *pb.IncrementOrderRatingRequest) (*pb.IncrementOrderRatingResponse, error) {
+	s.logger.Info("increment order rating request")
+	return s.service.IncrementOrderRating(ctx, in)
+}
+
+func (s *AuthServiceSt) DeleteKitchen(ctx context.Context, in *pb.DeleteKitchenRequest) (*pb.DeleteKitchenResponse, error) {
+	s.logger.Info("delete kitchen request")
+	return s.service.DeleteKitchen(ctx, in)
+}

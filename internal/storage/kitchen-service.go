@@ -4,6 +4,8 @@ import (
 	pb "auth-service/genprotos/auth_pb"
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -354,6 +356,7 @@ func (s *AuthSt) DoesKitchenExist(ctx context.Context, in *pb.DoesKitchenExistRe
 		s.logger.Error(err.Error())
 		return nil, err
 	}
+	log.Println(query)
 
 	return &pb.DoesKitchenExistResponse{Exists: true}, nil
 }
@@ -379,4 +382,80 @@ func (s *AuthSt) IncrementTotalOrders(ctx context.Context, in *pb.IncrementTotal
 	return &pb.IncrementTotalOrdersResponse{
 		Ok: "Total orders incremented successfully",
 	}, nil
+}
+
+// 17
+func (s *AuthSt) IncrementOrderRating(ctx context.Context, in *pb.IncrementOrderRatingRequest) (*pb.IncrementOrderRatingResponse, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	query, args, err := s.queryBuilder.Select("rating").
+		From("kitchens").
+		Where(sq.Eq{"kitchen_id": in.KitchenId}).
+		Where("deleted_at IS NULL").
+		ToSql()
+	if err != nil {
+		s.logger.Error("Failed to build query", "error", err)
+		return nil, err
+	}
+
+	var rating float32
+
+	err = tx.QueryRowContext(ctx, query, args...).Scan(&rating)
+	if err != nil {
+		s.logger.Error("Failed to execute query", "error", err)
+		return nil, err
+	}
+
+	var updated_rating float32
+	if rating == 0 {
+		updated_rating = in.Rating
+	} else {
+		updated_rating = (rating + in.Rating) / 2
+	}
+
+	query, args, err = s.queryBuilder.Update("kitchens").
+		Set("rating", updated_rating).
+		Where(sq.Eq{"kitchen_id": in.KitchenId}).
+		Where("deleted_at IS NULL").
+		ToSql()
+	if err != nil {
+		s.logger.Error("Failed to build query", "error", err)
+		return nil, err
+	}
+
+	_, err = tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		s.logger.Error("Failed to execute query", "error", err)
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return &pb.IncrementOrderRatingResponse{
+		Ok: "Order rating incremented successfully",
+	}, nil
+}
+
+func (s *AuthSt) DeleteKitchen(ctx context.Context, in *pb.DeleteKitchenRequest) (*pb.DeleteKitchenResponse, error) {
+	query, args, err := s.queryBuilder.
+		Delete("kitchens").
+		Where(sq.Eq{"kitchen_id": in.KitchenId}).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to build delete query: %w", err)
+	}
+
+	_, err = s.db.Exec(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute delete query: %w", err)
+	}
+
+	return &pb.DeleteKitchenResponse{Ok: "Kitchen deleted successfully"}, nil
 }

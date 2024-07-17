@@ -52,3 +52,14 @@ func (s *AuthServiceSt) IsValidToken(ctx context.Context, req *pb.IsValidTokenRe
 	s.logger.Info("is valid token request")
 	return s.service.IsValidToken(ctx, req)
 }
+
+func (s *AuthServiceSt) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+	s.logger.Info("delete kitchen request")
+	return s.service.DeleteUser(ctx, req)
+}
+
+// 20
+func (s *AuthServiceSt) IsValidUser(ctx context.Context, req *pb.IsValidUserRequest) (*pb.IsValidUserResponse, error) {
+	s.logger.Info("is valid user request")
+	return s.service.IsValidUser(ctx, req)
+}

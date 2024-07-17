@@ -34,6 +34,10 @@ const (
 	AuthService_DoesKitchenExist_FullMethodName     = "/AuthService/DoesKitchenExist"
 	AuthService_IsValidToken_FullMethodName         = "/AuthService/IsValidToken"
 	AuthService_IncrementTotalOrders_FullMethodName = "/AuthService/IncrementTotalOrders"
+	AuthService_IncrementOrderRating_FullMethodName = "/AuthService/IncrementOrderRating"
+	AuthService_DeleteUser_FullMethodName           = "/AuthService/DeleteUser"
+	AuthService_DeleteKitchen_FullMethodName        = "/AuthService/DeleteKitchen"
+	AuthService_IsValidUser_FullMethodName          = "/AuthService/IsValidUser"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -71,6 +75,14 @@ type AuthServiceClient interface {
 	IsValidToken(ctx context.Context, in *IsValidTokenRequest, opts ...grpc.CallOption) (*IsValidTokenResponse, error)
 	// 16
 	IncrementTotalOrders(ctx context.Context, in *IncrementTotalOrdersRequest, opts ...grpc.CallOption) (*IncrementTotalOrdersResponse, error)
+	// 17
+	IncrementOrderRating(ctx context.Context, in *IncrementOrderRatingRequest, opts ...grpc.CallOption) (*IncrementOrderRatingResponse, error)
+	// 18
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
+	// 19
+	DeleteKitchen(ctx context.Context, in *DeleteKitchenRequest, opts ...grpc.CallOption) (*DeleteKitchenResponse, error)
+	// 20
+	IsValidUser(ctx context.Context, in *IsValidUserRequest, opts ...grpc.CallOption) (*IsValidUserResponse, error)
 }
 
 type authServiceClient struct {
@@ -231,6 +243,46 @@ func (c *authServiceClient) IncrementTotalOrders(ctx context.Context, in *Increm
 	return out, nil
 }
 
+func (c *authServiceClient) IncrementOrderRating(ctx context.Context, in *IncrementOrderRatingRequest, opts ...grpc.CallOption) (*IncrementOrderRatingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IncrementOrderRatingResponse)
+	err := c.cc.Invoke(ctx, AuthService_IncrementOrderRating_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteUserResponse)
+	err := c.cc.Invoke(ctx, AuthService_DeleteUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DeleteKitchen(ctx context.Context, in *DeleteKitchenRequest, opts ...grpc.CallOption) (*DeleteKitchenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteKitchenResponse)
+	err := c.cc.Invoke(ctx, AuthService_DeleteKitchen_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) IsValidUser(ctx context.Context, in *IsValidUserRequest, opts ...grpc.CallOption) (*IsValidUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IsValidUserResponse)
+	err := c.cc.Invoke(ctx, AuthService_IsValidUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
@@ -266,6 +318,14 @@ type AuthServiceServer interface {
 	IsValidToken(context.Context, *IsValidTokenRequest) (*IsValidTokenResponse, error)
 	// 16
 	IncrementTotalOrders(context.Context, *IncrementTotalOrdersRequest) (*IncrementTotalOrdersResponse, error)
+	// 17
+	IncrementOrderRating(context.Context, *IncrementOrderRatingRequest) (*IncrementOrderRatingResponse, error)
+	// 18
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
+	// 19
+	DeleteKitchen(context.Context, *DeleteKitchenRequest) (*DeleteKitchenResponse, error)
+	// 20
+	IsValidUser(context.Context, *IsValidUserRequest) (*IsValidUserResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -317,6 +377,18 @@ func (UnimplementedAuthServiceServer) IsValidToken(context.Context, *IsValidToke
 }
 func (UnimplementedAuthServiceServer) IncrementTotalOrders(context.Context, *IncrementTotalOrdersRequest) (*IncrementTotalOrdersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IncrementTotalOrders not implemented")
+}
+func (UnimplementedAuthServiceServer) IncrementOrderRating(context.Context, *IncrementOrderRatingRequest) (*IncrementOrderRatingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IncrementOrderRating not implemented")
+}
+func (UnimplementedAuthServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedAuthServiceServer) DeleteKitchen(context.Context, *DeleteKitchenRequest) (*DeleteKitchenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteKitchen not implemented")
+}
+func (UnimplementedAuthServiceServer) IsValidUser(context.Context, *IsValidUserRequest) (*IsValidUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsValidUser not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -601,6 +673,78 @@ func _AuthService_IncrementTotalOrders_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_IncrementOrderRating_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IncrementOrderRatingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).IncrementOrderRating(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_IncrementOrderRating_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).IncrementOrderRating(ctx, req.(*IncrementOrderRatingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DeleteKitchen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteKitchenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DeleteKitchen(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DeleteKitchen_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DeleteKitchen(ctx, req.(*DeleteKitchenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_IsValidUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsValidUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).IsValidUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_IsValidUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).IsValidUser(ctx, req.(*IsValidUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -667,6 +811,22 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IncrementTotalOrders",
 			Handler:    _AuthService_IncrementTotalOrders_Handler,
+		},
+		{
+			MethodName: "IncrementOrderRating",
+			Handler:    _AuthService_IncrementOrderRating_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _AuthService_DeleteUser_Handler,
+		},
+		{
+			MethodName: "DeleteKitchen",
+			Handler:    _AuthService_DeleteKitchen_Handler,
+		},
+		{
+			MethodName: "IsValidUser",
+			Handler:    _AuthService_IsValidUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

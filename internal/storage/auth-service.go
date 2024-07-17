@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -223,7 +224,7 @@ func (s *AuthSt) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 
 // 5
 func (s *AuthSt) ResetPassword(ctx context.Context, in *pb.ResetPasswordRequest) (*pb.ResetPasswordResponse, error) {
-	hashedPassword, err := hashPassword(in.Password)
+	hashedPassword, err := hashPassword(in.ConfirmPassword)
 	if err != nil {
 		s.logger.Error("Failed to hash password", "error", err)
 		return nil, status.Errorf(codes.Internal, "Internal server error: %v", err)
@@ -300,7 +301,7 @@ func (s *AuthSt) DoesUserExist(ctx context.Context, in *pb.DoesUserExistRequest)
 		return nil, err
 	}
 
-	var user_id int
+	var user_id string
 
 	row := s.db.QueryRowContext(ctx, query, args...)
 	err = row.Scan(
@@ -345,4 +346,51 @@ func (s *AuthSt) IsValidToken(ctx context.Context, in *pb.IsValidTokenRequest) (
 	}
 
 	return &pb.IsValidTokenResponse{Valid: !is_expired}, nil
+}
+
+func (s *AuthSt) DeleteUser(ctx context.Context, in *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+	query, args, err := s.queryBuilder.
+		Delete("users").
+		Where(sq.Eq{"user_id": in.UserId}).
+		ToSql()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to build delete query: %w", err)
+	}
+
+	_, err = s.db.Exec(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute delete query: %w", err)
+	}
+
+	return &pb.DeleteUserResponse{Ok: "User deleted successfully"}, nil
+}
+
+// 20
+func (s *AuthSt) IsValidUser(ctx context.Context, in *pb.IsValidUserRequest) (*pb.IsValidUserResponse, error) {
+	query, args, err := s.queryBuilder.Select("user_id").
+		From("users").
+		Where(sq.Eq{"email": in.Email}).
+		ToSql()
+	if err != nil {
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	var user_id string
+
+	row := s.db.QueryRowContext(ctx, query, args...)
+	err = row.Scan(
+		&user_id,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &pb.IsValidUserResponse{Valid: false}, nil
+		}
+		s.logger.Error(err.Error())
+		return nil, err
+	}
+
+	return &pb.IsValidUserResponse{Valid: true}, nil
 }

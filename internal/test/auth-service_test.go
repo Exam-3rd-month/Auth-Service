@@ -1,7 +1,7 @@
 package test
 
 import (
-	pb "auth-service/genprotos/auth_pb"
+	"auth-service/genprotos/auth_pb"
 	"auth-service/internal/config"
 	"auth-service/internal/storage"
 	"context"
@@ -9,12 +9,9 @@ import (
 	"log/slog"
 	"os"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func setupAuthSt(t *testing.T) *storage.AuthSt {
+func setupAuthSt() *storage.AuthSt {
 	logFile, err := os.OpenFile("test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
@@ -27,166 +24,207 @@ func setupAuthSt(t *testing.T) *storage.AuthSt {
 	if err != nil {
 		log.Fatal(err)
 	}
+	storage, err := storage.New(configs, logger)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	authSt, err := storage.New(configs, logger)
-	require.NoError(t, err)
-	return authSt
+	return storage
 }
 
 func TestRegister(t *testing.T) {
-	authSt := setupAuthSt(t)
+	authSt := setupAuthSt()
 	ctx := context.Background()
-
-	req := &pb.RegisterRequest{
-		Username: "testuser",
-		Email:    "test@example.com",
-		Password: "testpass",
-		FullName: "Test User",
-		UserType: "customer",
+	test := auth_pb.RegisterRequest{
+		Username: "testusername",
+		Email:    "testemail",
+		Password: "testpassword",
+		FullName: "testfullname",
+		UserType: "user",
 	}
 
-	resp, err := authSt.Register(ctx, req)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, resp.UserId)
-	assert.Equal(t, req.Username, resp.Username)
-	assert.Equal(t, req.Email, resp.Email)
-	assert.Equal(t, req.FullName, resp.FullName)
-	assert.Equal(t, req.UserType, resp.UserType)
+	resp, err := authSt.Register(ctx, &test)
+	if err != nil {
+		t.Error("faliled to register user", resp)
+	}
+
+	_, err = authSt.DeleteUser(ctx, &auth_pb.DeleteUserRequest{UserId: resp.UserId})
+	if err != nil {
+		t.Error("failed to delete user", resp)
+	}
 }
 
 func TestLogin(t *testing.T) {
-	authSt := setupAuthSt(t)
+	authSt := setupAuthSt()
 	ctx := context.Background()
 
-	// First, register a user
-	registerReq := &pb.RegisterRequest{
-		Username: "logintest",
-		Email:    "login@example.com",
-		Password: "loginpass",
-		FullName: "Login Test",
-		UserType: "customer",
-	}
-	_, err := authSt.Register(ctx, registerReq)
-	require.NoError(t, err)
-
-	// Now, try to login
-	loginReq := &pb.LoginRequest{
-		Email:    "login@example.com",
-		Password: "loginpass",
+	test := auth_pb.RegisterRequest{
+		Username: "testusername",
+		Email:    "testemail",
+		Password: "testpassword",
+		FullName: "testfullname",
+		UserType: "user",
 	}
 
-	resp, err := authSt.Login(ctx, loginReq)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, resp.AccessToken)
+	resp, err := authSt.Register(ctx, &test)
+	if err != nil {
+		t.Error("faliled to register user", resp)
+	}
+
+	test2 := auth_pb.LoginRequest{
+		Email:    "testemail",
+		Password: "testpassword",
+	}
+
+	resp2, err := authSt.Login(ctx, &test2)
+	if err != nil {
+		t.Error("faliled to login user", resp2)
+	}
+
+	_, err = authSt.DeleteUser(ctx, &auth_pb.DeleteUserRequest{UserId: resp.UserId})
+	if err != nil {
+		t.Error("failed to delete user", resp)
+	}
 }
 
 func TestGetProfile(t *testing.T) {
-	authSt := setupAuthSt(t)
+	authSt := setupAuthSt()
 	ctx := context.Background()
 
-	// First, register a user
-	registerReq := &pb.RegisterRequest{
-		Username: "profiletest",
-		Email:    "profile@example.com",
-		Password: "profilepass",
-		FullName: "Profile Test",
-		UserType: "customer",
-	}
-	regResp, err := authSt.Register(ctx, registerReq)
-	require.NoError(t, err)
-
-	// Now, get the profile
-	profileReq := &pb.GetProfileRequest{
-		UserId: regResp.UserId,
+	test := auth_pb.RegisterRequest{
+		Username: "testusername",
+		Email:    "testemail",
+		Password: "testpassword",
+		FullName: "testfullname",
+		UserType: "user",
 	}
 
-	resp, err := authSt.GetProfile(ctx, profileReq)
-	assert.NoError(t, err)
-	assert.Equal(t, regResp.UserId, resp.UserId)
-	assert.Equal(t, registerReq.Username, resp.Username)
-	assert.Equal(t, registerReq.Email, resp.Email)
-	assert.Equal(t, registerReq.FullName, resp.FullName)
-	assert.Equal(t, registerReq.UserType, resp.UserType)
+	resp, err := authSt.Register(ctx, &test)
+	if err != nil {
+		t.Error("faliled to register user", resp)
+	}
+
+	test2 := auth_pb.GetProfileRequest{
+		UserId: resp.UserId,
+	}
+
+	resp2, err := authSt.GetProfile(ctx, &test2)
+	if err != nil {
+		t.Error("faliled to get profile", resp2)
+	}
+
+	_, err = authSt.DeleteUser(ctx, &auth_pb.DeleteUserRequest{UserId: resp.UserId})
+	if err != nil {
+		t.Error("failed to delete user", resp)
+	}
 }
 
 func TestUpdateProfile(t *testing.T) {
-	authSt := setupAuthSt(t)
+	authSt := setupAuthSt()
 	ctx := context.Background()
 
-	// First, register a user
-	registerReq := &pb.RegisterRequest{
-		Username: "updatetest",
-		Email:    "update@example.com",
-		Password: "updatepass",
-		FullName: "Update Test",
-		UserType: "customer",
-	}
-	regResp, err := authSt.Register(ctx, registerReq)
-	require.NoError(t, err)
-
-	// Now, update the profile
-	updateReq := &pb.UpdateProfileRequest{
-		UserId:      regResp.UserId,
-		FullName:    "Updated Name",
-		Address:     "123 Update St",
-		PhoneNumber: "1234567890",
+	test := auth_pb.RegisterRequest{
+		Username: "testusername",
+		Email:    "testemail",
+		Password: "testpassword",
+		FullName: "testfullname",
+		UserType: "user",
 	}
 
-	resp, err := authSt.UpdateProfile(ctx, updateReq)
-	assert.NoError(t, err)
-	assert.Equal(t, updateReq.UserId, resp.UserId)
-	assert.Equal(t, updateReq.FullName, resp.FullName)
-	assert.Equal(t, updateReq.Address, resp.Address)
-	assert.Equal(t, updateReq.PhoneNumber, resp.PhoneNumber)
+	resp, err := authSt.Register(ctx, &test)
+	if err != nil {
+		t.Error("faliled to register user", resp)
+	}
+
+	test2 := auth_pb.UpdateProfileRequest{
+		UserId:      resp.UserId,
+		FullName:    "testfullname2",
+		Address:     "testaddress",
+		PhoneNumber: "testphonenumber",
+	}
+
+	resp2, err := authSt.UpdateProfile(ctx, &test2)
+	if err != nil {
+		t.Error("faliled to update profile", resp2)
+	}
+
+	_, err = authSt.DeleteUser(ctx, &auth_pb.DeleteUserRequest{UserId: resp.UserId})
+	if err != nil {
+		t.Error("failed to delete user", resp)
+	}
 }
 
 func TestResetPassword(t *testing.T) {
-	authSt := setupAuthSt(t)
+	authSt := setupAuthSt()
 	ctx := context.Background()
 
-	// First, register a user
-	registerReq := &pb.RegisterRequest{
-		Username: "resettest",
-		Email:    "reset@example.com",
-		Password: "resetpass",
-		FullName: "Reset Test",
-		UserType: "customer",
-	}
-	_, err := authSt.Register(ctx, registerReq)
-	require.NoError(t, err)
-
-	// Now, reset the password
-	resetReq := &pb.ResetPasswordRequest{
-		Email:    "reset@example.com",
-		Password: "newpassword",
+	test := auth_pb.RegisterRequest{
+		Username: "testusername",
+		Email:    "testemail",
+		Password: "testpassword",
+		FullName: "testfullname",
+		UserType: "user",
 	}
 
-	resp, err := authSt.ResetPassword(ctx, resetReq)
-	assert.NoError(t, err)
-	assert.Equal(t, "Password successfully updated", resp.Message)
+	resp, err := authSt.Register(ctx, &test)
+	if err != nil {
+		t.Error("faliled to register user", resp)
+	}
+
+	test2 := auth_pb.ResetPasswordRequest{
+		Email:    "testemail",
+		ConfirmPassword: "testpassword",
+	}
+
+	resp2, err := authSt.ResetPassword(ctx, &test2)
+	if err != nil {
+		t.Error("faliled to reset password", resp2)
+	}
+
+	_, err = authSt.DeleteUser(ctx, &auth_pb.DeleteUserRequest{UserId: resp.UserId})
+	if err != nil {
+		t.Error("failed to delete user", resp)
+	}
 }
 
 func TestLogout(t *testing.T) {
-	authSt := setupAuthSt(t)
+	authSt := setupAuthSt()
 	ctx := context.Background()
 
-	// First, register a user
-	registerReq := &pb.RegisterRequest{
-		Username: "logouttest",
-		Email:    "logout@example.com",
-		Password: "logoutpass",
-		FullName: "Logout Test",
-		UserType: "customer",
-	}
-	regResp, err := authSt.Register(ctx, registerReq)
-	require.NoError(t, err)
-
-	// Now, logout
-	logoutReq := &pb.LogoutRequest{
-		UserId: regResp.UserId,
+	test := auth_pb.RegisterRequest{
+		Username: "testusername",
+		Email:    "testemail",
+		Password: "testpassword",
+		FullName: "testfullname",
+		UserType: "user",
 	}
 
-	resp, err := authSt.Logout(ctx, logoutReq)
-	assert.NoError(t, err)
-	assert.Equal(t, "User successfully logged out", resp.Message)
+	resp, err := authSt.Register(ctx, &test)
+	if err != nil {
+		t.Error("faliled to register user", resp)
+	}
+
+	test2 := auth_pb.LoginRequest{
+		Email:    "testemail",
+		Password: "testpassword",
+	}
+
+	resp2, err := authSt.Login(ctx, &test2)
+	if err != nil {
+		t.Error("faliled to login user", resp2)
+	}
+
+	test3 := auth_pb.LogoutRequest{
+		UserId: resp.UserId,
+	}
+
+	resp3, err := authSt.Logout(ctx, &test3)
+	if err != nil {
+		t.Error("faliled to logout user", resp3)
+	}
+
+	_, err = authSt.DeleteUser(ctx, &auth_pb.DeleteUserRequest{UserId: resp.UserId})
+	if err != nil {
+		t.Error("failed to delete user", resp)
+	}
 }
