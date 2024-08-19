@@ -6,6 +6,7 @@ import (
 
 	"auth-service/genprotos/auth_pb"
 	"auth-service/internal/config"
+
 	"google.golang.org/grpc"
 )
 
@@ -22,7 +23,7 @@ func New(service auth_pb.AuthServiceServer) *API {
 }
 
 func (a *API) RUN(config *config.Config) error {
-	listener, err := net.Listen("tcp", config.Server.Port)
+	listener, err := net.Listen("tcp", "auth"+config.Server.Port)
 	if err != nil {
 		return err
 	}
